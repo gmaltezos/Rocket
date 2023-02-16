@@ -1,6 +1,10 @@
 # Rocket Lander OpenAI Environment
 
-In order to run the code, you need to clone the repository, activat conda and run the command: conda env create -f rocket2.yml
+In order to run the code, you need to clone the repository, activat conda and run the command: 
+
+```
+conda env create -f rocket2.yml
+```
 
 This is a vertical rocket landing simulator modelled from SpaceX's Falcon 9 first stage rocket. The simulation 
 was developed in Python 3.5 and written using [OpenAI's gym environment](https://gym.openai.com/docs/). 

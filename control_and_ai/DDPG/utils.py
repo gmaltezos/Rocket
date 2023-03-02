@@ -13,8 +13,8 @@ def layer(input_layer, num_next_neurons, is_output=False, activation=tf.nn.relu)
     num_prev_neurons = int(input_layer.shape[1])
     shape = [num_prev_neurons, num_next_neurons]
 
-    weights = tf.get_variable("weights", shape, initializer=tf.contrib.layers.xavier_initializer())
-    biases = tf.get_variable("biases", [num_next_neurons], initializer=tf.contrib.layers.xavier_initializer())
+    weights = tf.compat.v1.get_variable("weights", shape, initializer=tf.contrib.layers.xavier_initializer())
+    biases = tf.compat.v1.get_variable("biases", [num_next_neurons], initializer=tf.contrib.layers.xavier_initializer())
 
     dot = tf.matmul(input_layer, weights) + biases
 

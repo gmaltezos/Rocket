@@ -26,6 +26,7 @@ class Actor():
         self.tau = tau
 
 
+        # tf.compat.v1.disable_eager_execution()
         self.phase = tf.compat.v1.placeholder(tf.bool, name='phase')  # Are we trianing or not?
 
         self.state_ph = tf.compat.v1.placeholder(tf.float32, shape=(None, env_space_size))
@@ -97,6 +98,7 @@ class Actor():
         return fc3 * self.action_space_bounds
 
     def create_nn(self, state, name='actor'):
+        # with tf.compat.v1.variable_scope(name + '_fc_1'):
         with tf.variable_scope(name + '_fc_1'):
             fc1 = layer(state, 400, activation=tf.nn.relu)
         with tf.variable_scope(name + '_fc_2'):

@@ -8,6 +8,7 @@ from constants import *
 import numpy as np
 import matplotlib.pyplot as plt
 import cvxpy as opt
+import pdb
 
 
 class MPC:
@@ -114,33 +115,47 @@ class MPC:
         """
         assert len(initial_state) == self.state_len
         # Create variables
-        # x = opt.Variable(self.state_len, time_horizon + 1, name='states')
-        # u = opt.Variable(self.action_len, time_horizon, name='actions')
-        x = opt.Variable(self.state_len, name='states')
-        u = opt.Variable(self.action_len, name='actions')
+        x = opt.Variable((self.state_len, time_horizon + 1), name='states')
+        u = opt.Variable((self.action_len, time_horizon), name='actions')
+        # x = opt.Variable(self.state_len, name='states')
+        # u = opt.Variable(self.action_len, name='actions')
 
         # Loop through the entire time_horizon and append costs
         cost_function = []
 
+        # for t in range(time_horizon):
+        #     # _cost = opt.norm(x[2, t + 1],2)*50 + opt.norm(x[3, t + 1],2)*50 + opt.quad_form(target[:, t + 1] - x[:, t + 1], Q) + opt.quad_form(u[:, t], R) + opt.quad_form(u[:, t]-u[:, t-1], R*0.1)
+        #     _cost = opt.quad_form(target[:, t + 1] - x[:, t + 1], Q) + opt.quad_form(u[:, t], R) + opt.quad_form(u[:, t] - u[:, t - 1], R * 0.1)
+        #     _constraints = [x[:, t + 1] == A * x[:, t] + B * u[:, t],
+        #                     u[0, t] >= MAIN_ENGINE_POWER/1.8, u[0, t] <= MAIN_ENGINE_POWER / 1.05,
+        #                     u[1, t] >= -SIDE_ENGINE_POWER, u[1, t] <= SIDE_ENGINE_POWER,
+        #                     u[2, t] >= -self.angle_limit, u[2, t] <= self.angle_limit,
+        #                     opt.norm(target[:, t + 1] - x[:, t + 1], 1) <= 0.01]
+
+        #     cost_function.append(opt.Problem(opt.Minimize(_cost), constraints=_constraints))
+
+        # # Add final cost
+        # problem = sum(cost_function)
+        # problem.constraints += [opt.norm(target[:, time_horizon] - x[:, time_horizon], 1) <= 0.001,
+        #                         x[:, 0] == initial_state]
+        # # Minimize Problem
+        # problem.solve(verbose=verbose, solver=opt.SCS)
+        # # u[0, :].value.A.flatten()
+
+        costlist = 0.0
+        constrlist = []
         for t in range(time_horizon):
-            # _cost = opt.norm(x[2, t + 1],2)*50 + opt.norm(x[3, t + 1],2)*50 + opt.quad_form(target[:, t + 1] - x[:, t + 1], Q) + opt.quad_form(u[:, t], R) + opt.quad_form(u[:, t]-u[:, t-1], R*0.1)
-            _cost = opt.quad_form(target[:, t + 1] - x[:, t + 1], Q) + opt.quad_form(u[:, t], R) + opt.quad_form(
+            costlist += opt.quad_form(target[:, t + 1] - x[:, t + 1], Q) + opt.quad_form(u[:, t], R) + opt.quad_form(
                 u[:, t] - u[:, t - 1], R * 0.1)
-            _constraints = [x[:, t + 1] == A * x[:, t] + B * u[:, t],
+            constrlist += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t],
                             u[0, t] >= MAIN_ENGINE_POWER/1.8, u[0, t] <= MAIN_ENGINE_POWER / 1.05,
                             u[1, t] >= -SIDE_ENGINE_POWER, u[1, t] <= SIDE_ENGINE_POWER,
                             u[2, t] >= -self.angle_limit, u[2, t] <= self.angle_limit,
                             opt.norm(target[:, t + 1] - x[:, t + 1], 1) <= 0.01]
-
-            cost_function.append(opt.Problem(opt.Minimize(_cost), constraints=_constraints))
-
-        # Add final cost
-        problem = sum(cost_function)
-        problem.constraints += [opt.norm(target[:, time_horizon] - x[:, time_horizon], 1) <= 0.001,
-                                x[:, 0] == initial_state]
-        # Minimize Problem
+        constrlist += [opt.norm(target[:, time_horizon] - x[:, time_horizon], 1) <= 0.001, x[:, 0] == initial_state]
+        problem = opt.Problem(opt.Minimize(costlist), constrlist)
         problem.solve(verbose=verbose, solver=opt.SCS)
-        # u[0, :].value.A.flatten()
+
         return x, u
 
 
